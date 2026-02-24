@@ -32,19 +32,19 @@ function calculateCount() {
     if (currentStatus === 'all-filter-btn') {
         // availableCount.innerText = `${allCardSection.children.length} jobs`;
         availableCount.innerText = `${total.innerText} jobs`;
-        console.log(currentStatus);
+
     }
 
     else if (currentStatus === 'interview-filter-btn') {
         availableCount.innerText = `${interviewList.length} of ${total.innerText} jobs`;
-        console.log(currentStatus);
+
 
     }
     else if (currentStatus === 'rejected-filter-btn') {
         availableCount.innerText = `${rejectedList.length} of ${total.innerText} jobs`;
-        console.log(currentStatus);
+
     }
-    console.log(currentStatus);
+
 }
 
 
@@ -73,6 +73,7 @@ function toggleStyle(id) {
     if (id === 'interview-filter-btn') {
         allCardSection.classList.add('hidden');
         filterSection.classList.remove('hidden');
+        calculateCount();
 
         if (interviewList.length === 0) {
             emptyState.classList.remove('hidden');
@@ -82,11 +83,13 @@ function toggleStyle(id) {
     } else if (id === 'all-filter-btn') {
         allCardSection.classList.remove('hidden');
         filterSection.classList.add('hidden');
+        calculateCount();
         // No empty state check here usually, as "All" typically has the initial cards
 
     } else if (id === 'rejected-filter-btn') {
         allCardSection.classList.add('hidden');
         filterSection.classList.remove('hidden');
+        calculateCount();
         // console.log(rejectedList.length);
         // Corrected check to look at rejectedList.length
         if (rejectedList.length === 0) {
