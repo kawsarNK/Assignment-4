@@ -1,9 +1,7 @@
-// --- State Management ---
 let interviewList = [];
 let rejectedList = [];
 let currentStatus = 'all-filter-btn';
 
-// --- DOM Elements ---
 const total = document.getElementById('total-count');
 const interviewCount = document.getElementById('interview-count');
 const rejectedCount = document.getElementById('rejected-count');
@@ -19,9 +17,7 @@ const filterSection = document.getElementById('filtered-section');
 const emptyState = document.getElementById('empty-state');
 
 
-// --- Initialization ---
 calculateCount();
-
 
 function calculateCount() {
     total.innerText = allCardSection.children.length;
@@ -47,9 +43,23 @@ function calculateCount() {
 
 }
 
+function findCardInAllSection(companyName) {
+    const cards = allCardSection.querySelectorAll('.card');
+
+    cards.forEach(card => {
+        const nameEl = card.querySelector('.job-company-name');
+
+        if (
+            nameEl &&
+            nameEl.innerText.trim() === companyName.trim()
+        ) {
+            const statusEl = card.querySelector('.job-status');
+            statusEl.innerText = 'REJECTED';
+        }
+    });
+}
 
 //   Handles UI tab switching and triggers rendering for filtered views.
-
 
 function toggleStyle(id) {
     const buttons = document.querySelectorAll('.filter-btn');
@@ -100,77 +110,81 @@ function toggleStyle(id) {
     }
 }
 
-// --- Event Delegation ---
-
+// Event Delegation
 mainContainer.addEventListener('click', function (event) {
     const card = event.target.closest('.card');
     if (!card) return;
 
-    // Extracting data from the card
+    // 1. DELETE button
+    if (event.target.closest('.delete-btn')) {
+        const companyName = card.querySelector('.job-company-name').innerText;
+
+        card.remove(); // Remove from DOM
+
+        // Clean up arrays
+        interviewList = interviewList.filter(item => item.companyName !== companyName);
+        rejectedList = rejectedList.filter(item => item.companyName !== companyName);
+
+        // Re-render based on current view
+        if (currentStatus === 'interview-filter-btn') renderInterview();
+        else if (currentStatus === 'rejected-filter-btn') renderRejected();
+
+        calculateCount();
+        return;
+    }
+
+    //  check for block Interview/Rejected buttons
+    const isInterviewBtn = event.target.closest('.interview-btn');
+    const isRejectedBtn = event.target.closest('.rejected-btn');
+    const currentCardStatus = card.querySelector('.job-status').innerText.toUpperCase();
+
+    // Block "All" if status is already set
+    if (currentStatus === 'all-filter-btn' && (currentCardStatus === 'INTERVIEW' || currentCardStatus === 'REJECTED')) {
+        return;
+    }
+
+    // Block Interview click if in Interview filter
+    if (currentStatus === 'interview-filter-btn' && isInterviewBtn) {
+        return;
+    }
+
+    // Block everything if in Rejected filter
+    if (currentStatus === 'rejected-filter-btn') {
+        return;
+    }
+
     const companyName = card.querySelector('.job-company-name').innerText;
     const jobTitle = card.querySelector('.job-title').innerText;
     const jobInfo = card.querySelector('.job-info').innerText;
     const jobDescription = card.querySelector('.job-descrition').innerText;
 
-    // --- Handle Interview Button Click ---
-    if (event.target.closest('.interview-btn')) {
+    if (isInterviewBtn) {
         card.querySelector('.job-status').innerText = 'INTERVIEW';
         const cardInfo = { companyName, jobTitle, jobInfo, status: 'INTERVIEW', jobDescription };
 
-        // Prevent duplicates
         if (!interviewList.find(item => item.companyName === companyName)) {
             interviewList.push(cardInfo);
         }
-
-        // Remove from rejected list if it exists there
         rejectedList = rejectedList.filter(item => item.companyName !== companyName);
-
-        if (currentStatus === 'rejected-filter-btn') renderRejected();
         calculateCount();
     }
 
-    // --- Handle Rejected Button Click ---
-    else if (event.target.closest('.rejected-btn')) {
+
+    else if (isRejectedBtn) {
         card.querySelector('.job-status').innerText = 'REJECTED';
         const cardInfo = { companyName, jobTitle, jobInfo, status: 'REJECTED', jobDescription };
+
+        findCardInAllSection(companyName);
 
         if (!rejectedList.find(item => item.companyName === companyName)) {
             rejectedList.push(cardInfo);
         }
-
-        // Remove from interview list if it exists there
         interviewList = interviewList.filter(item => item.companyName !== companyName);
 
         if (currentStatus === 'interview-filter-btn') renderInterview();
         calculateCount();
     }
-    // --- Handle Delete Button Click ---
-    else if (event.target.closest('.delete-btn')) {
-
-        const card = event.target.closest('.card');
-        const companyName = card.querySelector('.job-company-name').innerText;
-
-        // Remove from DOM
-        card.remove();
-
-        // Remove from arrays
-        interviewList = interviewList.filter(item => item.companyName !== companyName);
-        rejectedList = rejectedList.filter(item => item.companyName !== companyName);
-
-        // Re-render current filter
-        if (currentStatus === 'interview-filter-btn') {
-            renderInterview();
-        }
-        else if (currentStatus === 'rejected-filter-btn') {
-            renderRejected();
-        }
-
-        calculateCount();
-    }
-
-
 });
-
 
 //   Generates HTML for a job card
 
